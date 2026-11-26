@@ -114,10 +114,7 @@ async function mapRunningSerialsByAvdName(
 ): Promise<Map<string, string>> {
   const entries = await Promise.all(
     serials.map(async (serial) => {
-      const avdName = await getAvdNameForSerial(serial, runner, {
-        strict: true,
-        timeoutMs: ANDROID_BOOT_TIMEOUT_MS,
-      });
+      const avdName = await getAvdNameForSerial(serial, runner, ANDROID_BOOT_TIMEOUT_MS);
       if (!avdName) {
         throw new Error(`Failed to map Android emulator serial ${serial} to an AVD name`);
       }
@@ -131,28 +128,17 @@ async function mapRunningSerialsByAvdName(
 async function getAvdNameForSerial(
   serial: string,
   runner: CommandRunner,
-  options: { strict?: boolean; timeoutMs?: number } = {},
+  timeoutMs: number,
 ): Promise<string | undefined> {
-  const result = await runner.run("adb", ["-s", serial, "emu", "avd", "name"], {
-    ...(options.timeoutMs !== undefined ? { timeoutMs: options.timeoutMs } : {}),
-  });
+  const result = await runner.run("adb", ["-s", serial, "emu", "avd", "name"], { timeoutMs });
   if (result.code !== 0) {
-    if (options.strict) {
-      throw new Error(`Failed to map Android emulator serial ${serial} to an AVD name`);
-    }
     return undefined;
   }
 
-  const avdName = result.stdout
+  return result.stdout
     .split(/\r?\n/)
     .map((line) => line.trim())
     .find((line) => line.length > 0 && line !== "OK");
-
-  if (!avdName && options.strict) {
-    throw new Error(`Failed to map Android emulator serial ${serial} to an AVD name`);
-  }
-
-  return avdName;
 }
 
 async function waitForAvdSerial(
@@ -165,9 +151,7 @@ async function waitForAvdSerial(
     const devices = await runner.run("adb", ["devices"], { timeoutMs: remainingMs(deadline) });
     if (devices.code === 0) {
       for (const serial of parseAdbDevices(devices.stdout)) {
-        const runningAvdName = await getAvdNameForSerial(serial, runner, {
-          timeoutMs: remainingMs(deadline),
-        });
+        const runningAvdName = await getAvdNameForSerial(serial, runner, remainingMs(deadline));
         if (runningAvdName === avdName) {
           return serial;
         }
