@@ -3,6 +3,7 @@ import {
   discoverIosSimulators,
   openIosSimulator,
   parseSimctlDevices,
+  runtimeName,
 } from "../../src/devices/ios.js";
 import type { CommandRunner } from "../../src/run/command.js";
 
@@ -43,6 +44,14 @@ const simctlJson = JSON.stringify({
 });
 
 describe("iOS devices", () => {
+  it.each([
+    ["iOS-18-2", "iOS 18.2"],
+    ["", ""],
+    ["iOS-18-2.", ""],
+  ])("formats the last runtime segment of %j", (identifier, name) => {
+    expect(runtimeName(identifier)).toBe(name);
+  });
+
   it("parses available simctl devices and omits unavailable devices", () => {
     expect(parseSimctlDevices(simctlJson)).toEqual([
       {
