@@ -67,9 +67,6 @@ export async function openAndroidEmulator(
         return { ok: false, message: `${device.name} failed to boot` };
       }
       serial = await waitForAvdSerial(device.avdName, runner);
-      if (!serial) {
-        return { ok: false, message: `${device.name} failed to boot` };
-      }
     }
 
     if (!serial) {

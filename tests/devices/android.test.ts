@@ -253,6 +253,16 @@ emulator-5560 device
     );
   });
 
+  it("reports failure if an already running AVD has no serial", async () => {
+    const runner: CommandRunner = { run: vi.fn() };
+
+    await expect(openAndroidEmulator({ ...pixel8, state: "Running" }, runner)).resolves.toEqual({
+      ok: false,
+      message: "Pixel_8_API_35 failed to boot",
+    });
+    expect(runner.run).not.toHaveBeenCalled();
+  });
+
   it("polls until boot completion is reported", async () => {
     let bootChecks = 0;
     const runner: CommandRunner = {
