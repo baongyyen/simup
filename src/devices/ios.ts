@@ -18,7 +18,7 @@ const IOS_BOOT_TIMEOUT_MS = 120_000;
 const IOS_UNAVAILABLE_MESSAGE = "iOS unavailable: xcrun not found or simctl failed";
 
 export function runtimeName(identifier: string): string {
-  const runtime = identifier.split(".").at(-1) ?? identifier;
+  const runtime = runtimeSuffix(identifier);
   return runtime.replace(/^iOS-/, "iOS ").replace(/-/g, ".");
 }
 
@@ -108,7 +108,11 @@ export async function openIosSimulator(
 }
 
 function isIosRuntime(identifier: string): boolean {
-  return identifier.split(".").at(-1)?.startsWith("iOS-") ?? false;
+  return runtimeSuffix(identifier).startsWith("iOS-");
+}
+
+function runtimeSuffix(identifier: string): string {
+  return identifier.slice(identifier.lastIndexOf(".") + 1);
 }
 
 function normalizeSimctlState(state: string | undefined): IosDevice["state"] {
